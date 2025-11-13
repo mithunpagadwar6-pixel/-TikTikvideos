@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBlWjogX3gTipSJK31AwVw0D6KxDv3ry7Y",
   authDomain: "tiktikvideos-4e8e7.firebaseapp.com",
   projectId: "tiktikvideos-4e8e7",
-  storageBucket: "tiktikvideos-4e8e7.appspot.com",  // ✅ यह सही है
+  storageBucket: "tiktikvideos-4e8e7.appspot.com", 
   messagingSenderId: "918908099153",
   appId: "1:918908099153:web:c03e103fc6199b37513670",
   measurementId: "G-5LNSWVF9EC"
