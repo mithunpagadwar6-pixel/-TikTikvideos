@@ -26,25 +26,27 @@ function initializeFirebase() {
   if (firebaseInitialized) return;
   
   try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
-      });
-    } else if (process.env.FIREBASE_PROJECT_ID) {
-      admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
-      });
-    }
-    
-    bucket = admin.storage().bucket();
-    firebaseInitialized = true;
-    console.log('✅ Firebase Admin initialized successfully');
-  } catch (error) {
-    console.log('⚠️  Firebase Admin not initialized:', error.message);
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n')
+    );
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+    });
+  } else if (process.env.FIREBASE_PROJECT_ID) {
+    admin.initializeApp({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+    });
   }
+  
+  bucket = admin.storage().bucket();
+  firebaseInitialized = true;
+  console.log('✅ Firebase Admin initialized successfully');
+} catch (error) {
+  console.log('⚠️ Firebase Admin not initialized:', error.message);
 }
 
 initializeFirebase();
