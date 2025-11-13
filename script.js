@@ -50,12 +50,43 @@ async function initializeFirebase() {
   }
 }
 
+// Wait for Firebase SDK to load from CDN, then initialize
+function waitForFirebaseSDK() {
+  return new Promise((resolve) => {
+    if (typeof firebase !== 'undefined') {
+      resolve(true);
+    } else {
+      // Check every 100ms for Firebase SDK
+      const checkInterval = setInterval(() => {
+        if (typeof firebase !== 'undefined') {
+          clearInterval(checkInterval);
+          resolve(true);
+        }
+      }, 100);
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve(false);
+      }, 10000);
+    }
+  });
+}
+
 // Initialize Firebase when page loads
-if (typeof firebase !== 'undefined') {
-  // Start Firebase initialization immediately
-  initializeFirebase().then(async (success) => {
+waitForFirebaseSDK().then(async (sdkLoaded) => {
+  if (sdkLoaded) {
+    const success = await initializeFirebase();
     if (success) {
       console.log('Firebase initialized successfully');
+      // Enable login button
+      const loginBtn = document.getElementById('googleLoginBtn');
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.style.opacity = '1';
+        loginBtn.textContent = 'Login with Google';
+      }
+      
       // If app is already created, set up auth and load videos
       if (window.tiktikApp) {
         // Set up auth state listener now that Firebase is ready
@@ -66,8 +97,10 @@ if (typeof firebase !== 'undefined') {
         console.log('Firebase auth listener setup and videos loaded');
       }
     }
-  });
-}
+  } else {
+    console.error('Firebase SDK failed to load');
+  }
+});
 
 class TikTikApp {
     constructor() {
