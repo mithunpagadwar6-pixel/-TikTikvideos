@@ -1,48 +1,33 @@
 // TikTik - YouTube Clone Application
-// Pure JavaScript implementation with local storage persistence
+// Firebase Direct Initialization (Frontend Safe for GitHub Pages)
 
-// Firebase Configuration - loaded from backend
 let firebaseApp = null;
 let firebaseAuth = null;
 let firestore = null;
 
-// Initialize Firebase by fetching config from backend
-async function initializeFirebase() {
+// ✅ Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAY1kqPrI-Sw5LYPfIUoKE45nJ3papGZU8",
+  authDomain: "tiktik-video-2de07.firebaseapp.com",
+  projectId: "tiktik-video-2de07",
+  storageBucket: "tiktik-video-2de07.appspot.com",
+  messagingSenderId: "840826006253",
+  appId: "1:840826006253:web:8a7c8356e589e1f9e0e411"
+};
+
+// ✅ Initialize Firebase
+function initializeFirebase() {
   if (typeof firebase === 'undefined') {
     console.error('Firebase SDK not loaded');
     return false;
   }
-
   try {
-    // Fetch Firebase config from backend endpoint (no keys in frontend!)
-    const response = await fetch('/api/get-config');
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error('Failed to load Firebase config');
-    }
-
-    // Initialize Firebase with config from backend
-    firebaseApp = firebase.initializeApp(data.firebase);
+    firebaseApp = firebase.initializeApp(firebaseConfig);
     firebaseAuth = firebase.auth();
-    
-    // Initialize Firestore with offline persistence settings
-    try {
-      firestore = firebase.firestore();
-      // Enable offline persistence
-      firestore.enablePersistence({ synchronizeTabs: true })
-        .catch((err) => {
-          if (err.code === 'failed-precondition') {
-            console.log('Firestore: Multiple tabs open, persistence disabled');
-          } else if (err.code === 'unimplemented') {
-            console.log('Firestore: Persistence not supported');
-          }
-        });
-    } catch (err) {
-      console.log('Firestore initialization: Using sample videos only');
-    }
-    
+    firestore = firebase.firestore();
+
     console.log('Firebase initialized successfully');
+    enableGoogleLoginButton();
     return true;
   } catch (error) {
     console.error('Firebase initialization error:', error);
@@ -50,53 +35,73 @@ async function initializeFirebase() {
   }
 }
 
-// Wait for Firebase SDK to load from CDN, then initialize
-function waitForFirebaseSDK() {
-  return new Promise((resolve) => {
-    if (typeof firebase !== 'undefined') {
-      resolve(true);
+// ✅ Enable Google Login Button
+function enableGoogleLoginButton() {
+  const loginBtn = document.getElementById('googleLoginBtn');
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    loginBtn.style.opacity = '1';
+    loginBtn.textContent = 'Login with Google';
+  }
+}
+
+// ✅ Google Sign-In Handler
+async function signInWithGoogle() {
+  const loginBtn = document.getElementById('googleLoginBtn');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    loginBtn.textContent = 'Loading...';
+    loginBtn.disabled = true;
+    const result = await firebaseAuth.signInWithPopup(provider);
+    const user = result.user;
+
+    // Update UI
+    document.getElementById('profile-container').style.display = 'block';
+    document.getElementById('profile-pic').src = user.photoURL;
+    document.getElementById('profile-avatar').src = user.photoURL;
+    document.getElementById('profile-name').textContent = user.displayName;
+    document.getElementById('profile-email').textContent = user.email;
+
+    loginBtn.style.display = 'none';
+    console.log('User signed in:', user.email);
+  } catch (error) {
+    alert('Login failed: ' + error.message);
+    loginBtn.textContent = 'Login with Google';
+    loginBtn.disabled = false;
+  }
+}
+
+// ✅ Logout Handler
+function logout() {
+  firebaseAuth.signOut().then(() => {
+    document.getElementById('profile-container').style.display = 'none';
+    const loginBtn = document.getElementById('googleLoginBtn');
+    loginBtn.style.display = 'inline-block';
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Login with Google';
+    console.log('User logged out');
+  });
+}
+
+// ✅ Auto Detect Auth State
+function setupAuthStateListener() {
+  firebaseAuth.onAuthStateChanged(user => {
+    if (user) {
+      console.log('User logged in:', user.email);
+      document.getElementById('googleLoginBtn').style.display = 'none';
+      document.getElementById('profile-container').style.display = 'block';
     } else {
-      // Check every 100ms for Firebase SDK
-      const checkInterval = setInterval(() => {
-        if (typeof firebase !== 'undefined') {
-          clearInterval(checkInterval);
-          resolve(true);
-        }
-      }, 100);
-      
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        resolve(false);
-      }, 10000);
+      document.getElementById('profile-container').style.display = 'none';
+      document.getElementById('googleLoginBtn').style.display = 'inline-block';
     }
   });
 }
 
-// Initialize Firebase when page loads
-waitForFirebaseSDK().then(async (sdkLoaded) => {
-  if (sdkLoaded) {
-    const success = await initializeFirebase();
-    if (success) {
-      console.log('Firebase initialized successfully');
-      // Enable login button
-      const loginBtn = document.getElementById('googleLoginBtn');
-      if (loginBtn) {
-        loginBtn.disabled = false;
-        loginBtn.style.opacity = '1';
-        loginBtn.textContent = 'Login with Google';
-      }
-      
-      // If app is already created, set up auth and load videos
-      if (window.tiktikApp) {
-        // Set up auth state listener now that Firebase is ready
-        window.tiktikApp.setupAuthStateListener();
-        // Load videos from Firestore
-        await window.tiktikApp.loadAllVideosFromFirestore();
-        window.tiktikApp.loadHomePage();
-        console.log('Firebase auth listener setup and videos loaded');
-      }
-    }
+// ✅ Wait for SDK & Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof firebase !== 'undefined') {
+    initializeFirebase();
+    setupAuthStateListener();
   } else {
     console.error('Firebase SDK failed to load');
   }
