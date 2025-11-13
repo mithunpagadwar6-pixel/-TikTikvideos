@@ -26,46 +26,45 @@ function initializeFirebase() {
   if (firebaseInitialized) return;
   
   try {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n')
-    );
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
-    });
-  } else if (process.env.FIREBASE_PROJECT_ID) {
-    admin.initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET
-    });
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n');
+      const serviceAccount = JSON.parse(serviceAccountString);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'tiktikvideos-4e8e7.appspot.com'
+      });
+      bucket = admin.storage().bucket();
+      firebaseInitialized = true;
+      console.log('✅ Firebase Admin initialized successfully');
+      console.log('🔥 Storage bucket:', process.env.FIREBASE_STORAGE_BUCKET || 'tiktikvideos-4e8e7.appspot.com');
+    } else if (process.env.FIREBASE_PROJECT_ID) {
+      admin.initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'tiktikvideos-4e8e7.appspot.com'
+      });
+      bucket = admin.storage().bucket();
+      firebaseInitialized = true;
+      console.log('✅ Firebase Admin initialized with project ID');
+    } else {
+      console.log('⚠️  Running in demo mode - no Firebase credentials provided');
+    }
+  } catch (error) {
+    console.error('❌ Firebase Admin initialization error:', error.message);
+    console.log('⚠️  Server will run in demo mode');
   }
-  
-  bucket = admin.storage().bucket();
-  firebaseInitialized = true;
-  console.log('✅ Firebase Admin initialized successfully');
-} catch (error) {
-  console.log('⚠️ Firebase Admin not initialized:', error.message);
 }
 
 initializeFirebase();
 
 app.get('/api/get-config', (req, res) => {
   const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
+    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBlWjogX3gTipSJK31AwVw0D6KxDv3ry7Y",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "tiktikvideos-4e8e7.firebaseapp.com",
+    projectId: process.env.FIREBASE_PROJECT_ID || "tiktikvideos-4e8e7",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "tiktikvideos-4e8e7.appspot.com",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "918908099153",
+    appId: process.env.FIREBASE_APP_ID || "1:918908099153:web:c03e103fc6199b37513670"
   };
-
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    return res.status(500).json({ 
-      error: 'Firebase configuration not set. Please configure environment variables.' 
-    });
-  }
 
   res.json({ firebase: firebaseConfig });
 });
@@ -322,10 +321,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Export for Vercel serverless deployment
 module.exports = app;
 
-// Start server only in development (not on Vercel)
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 TikTik Server running on http://0.0.0.0:${PORT}`);
