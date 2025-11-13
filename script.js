@@ -4745,3 +4745,55 @@ if (typeof window !== 'undefined') {
   window.liveChatManager = liveChatManager;
 }
 
+// ------------------- TikTik Upload & Live Logic -------------------
+
+// 🔹 सामान्य वीडियो Upload
+async function uploadVideo(file) {
+  const form = new FormData();
+  form.append("video", file);
+  const res = await fetch("/api/upload-video", { method: "POST", body: form });
+  const data = await res.json();
+  if (data.ok) alert("🎥 Video uploaded successfully!\nURL: " + data.url);
+  else alert("❌ Upload failed!");
+}
+
+// 🔹 Shorts Upload
+async function uploadShort(file) {
+  const form = new FormData();
+  form.append("short", file);
+  const res = await fetch("/api/upload-short", { method: "POST", body: form });
+  const data = await res.json();
+  if (data.ok) alert("🎬 Short uploaded successfully!\nURL: " + data.url);
+  else alert("❌ Upload failed!");
+}
+
+// 🔹 Live Recording Upload
+async function uploadLive(blob) {
+  const form = new FormData();
+  form.append("live", new File([blob], "live.mp4", { type: "video/mp4" }));
+  const res = await fetch("/api/upload-live", { method: "POST", body: form });
+  const data = await res.json();
+  if (data.ok) alert("📡 Live uploaded successfully!\nURL: " + data.url);
+  else alert("❌ Upload failed!");
+}
+
+// 🔹 MediaRecorder (Live Streaming)
+let recorder, chunks = [];
+async function startLive() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  recorder = new MediaRecorder(stream);
+  chunks = [];
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "video/mp4" });
+    uploadLive(blob);
+  };
+  recorder.start();
+  alert("🎥 Live recording started!");
+}
+
+function stopLive() {
+  recorder.stop();
+  alert("⏹ Recording stopped, uploading now...");
+}
+
