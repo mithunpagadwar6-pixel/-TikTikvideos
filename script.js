@@ -3437,10 +3437,37 @@ class TikTikApp {
 
 // Real Google Sign-in with Firebase Authentication
 function signInWithGoogle() {
+  // Check if Firebase SDK is loaded
+  if (typeof firebase === 'undefined') {
+    console.error('Firebase SDK not loaded');
+    if (window.tiktikApp) {
+      window.tiktikApp.showToast('Firebase is loading, please wait...', 'info');
+    }
+    // Wait and retry
+    setTimeout(() => {
+      if (typeof firebase !== 'undefined' && firebaseAuth) {
+        signInWithGoogle();
+      } else {
+        alert('Firebase could not be loaded. Please refresh the page.');
+      }
+    }, 2000);
+    return;
+  }
+
   // Check if Firebase is initialized
   if (!firebaseAuth) {
-    console.error('Firebase not initialized, using fallback');
-    signInWithGoogleFallback();
+    console.error('Firebase Auth not initialized yet, waiting...');
+    if (window.tiktikApp) {
+      window.tiktikApp.showToast('Initializing Google Sign-In...', 'info');
+    }
+    // Wait for initialization
+    setTimeout(() => {
+      if (firebaseAuth) {
+        signInWithGoogle();
+      } else {
+        alert('Google Sign-In is not available. Please refresh the page.');
+      }
+    }, 2000);
     return;
   }
 
