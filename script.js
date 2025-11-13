@@ -2826,8 +2826,8 @@ class TikTikApp {
         try {
             this.showLoading();
 
-            // Upload video to R2
-            const videoUrl = await uploadVideoToR2(file);
+            // Upload short video to Firebase Storage
+            const videoUrl = await uploadShortVideo(file);
 
             // Save to Firestore
             if (firestore) {
@@ -3000,8 +3000,8 @@ class TikTikApp {
 
                     this.showToast('Uploading recorded stream...', 'info');
 
-                    // Upload to R2
-                    const videoUrl = await uploadVideoToR2(videoFile);
+                    // Upload live stream recording to Firebase Storage
+                    const videoUrl = await saveLiveStreamRecording(videoFile);
 
                     // Save to Firestore as completed live stream
                     if (firestore) {
@@ -4035,70 +4035,122 @@ class WalletManager {
 // Initialize wallet manager
 const walletManager = new WalletManager();
 
-// Video Upload to Cloudflare R2 with signed URL
+// Video Upload to Firebase Storage via Backend API
 async function uploadVideoToR2(file) {
   try {
-    const user = JSON.parse(localStorage.getItem('tiktik_user') || '{}');
-    
-    if (!user.uid) {
-      throw new Error('User not authenticated');
+    if (!firebaseAuth || !firebaseAuth.currentUser) {
+      throw new Error('User not authenticated. Please login first.');
     }
 
-    // Get Firebase ID token
-    const idToken = await firebase.auth().currentUser.getIdToken();
+    const user = firebaseAuth.currentUser;
+    const idToken = await user.getIdToken();
+    
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('userId', user.uid);
+    formData.append('title', file.name.replace(/\.[^/.]+$/, ''));
 
-    // Request signed upload URL from backend
-    const response = await fetch('/api/generate-upload-url', {
+    console.log('📤 Uploading video:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+
+    const response = await fetch('/api/upload-video', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${idToken}`
       },
-      body: JSON.stringify({
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size
-      })
+      body: formData
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to get upload URL');
+      throw new Error(data.error || 'Failed to upload video');
     }
 
-    // Upload file to R2 using signed URL
-    const uploadResponse = await fetch(data.uploadUrl, {
-      method: 'PUT',
+    console.log('✅ Video uploaded successfully:', data.videoUrl);
+    return data.videoUrl;
+
+  } catch (error) {
+    console.error('❌ Error uploading video:', error);
+    throw error;
+  }
+}
+
+// Upload Short Video to Firebase Storage
+async function uploadShortVideo(file) {
+  try {
+    if (!firebaseAuth || !firebaseAuth.currentUser) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    const user = firebaseAuth.currentUser;
+    const idToken = await user.getIdToken();
+    
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('userId', user.uid);
+    formData.append('title', file.name.replace(/\.[^/.]+$/, ''));
+
+    console.log('📤 Uploading short video:', file.name);
+
+    const response = await fetch('/api/upload-short', {
+      method: 'POST',
       headers: {
-        'Content-Type': file.type,
+        'Authorization': `Bearer ${idToken}`
       },
-      body: file
+      body: formData
     });
 
-    if (!uploadResponse.ok) {
-      throw new Error('Failed to upload video to R2');
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to upload short video');
     }
 
-    // Save video metadata to Firestore
-    if (firestore) {
-      await firestore.collection('videos').add({
-        uploaderId: user.uid,
-        videoUrl: data.publicUrl,
-        fileKey: data.fileKey,
-        fileName: file.name,
-        fileSize: file.size,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        title: '',
-        description: '',
-        views: 0,
-        likes: 0
-      });
-    }
+    console.log('✅ Short video uploaded successfully:', data.videoUrl);
+    return data.videoUrl;
 
-    return data.publicUrl;
   } catch (error) {
-    console.error('Error uploading video to R2:', error);
+    console.error('❌ Error uploading short video:', error);
+    throw error;
+  }
+}
+
+// Save Live Stream Recording to Firebase Storage
+async function saveLiveStreamRecording(file) {
+  try {
+    if (!firebaseAuth || !firebaseAuth.currentUser) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    const user = firebaseAuth.currentUser;
+    const idToken = await user.getIdToken();
+    
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('userId', user.uid);
+    formData.append('title', `Live Stream ${new Date().toLocaleString()}`);
+
+    console.log('📤 Saving live stream recording:', file.name);
+
+    const response = await fetch('/api/save-live-stream', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to save live stream');
+    }
+
+    console.log('✅ Live stream saved successfully:', data.videoUrl);
+    return data.videoUrl;
+
+  } catch (error) {
+    console.error('❌ Error saving live stream:', error);
     throw error;
   }
 }
@@ -4743,57 +4795,5 @@ if (typeof window !== 'undefined') {
   window.walletManager = walletManager;
   window.uploadVideoToR2 = uploadVideoToR2;
   window.liveChatManager = liveChatManager;
-}
-
-// ------------------- TikTik Upload & Live Logic -------------------
-
-// 🔹 सामान्य वीडियो Upload
-async function uploadVideo(file) {
-  const form = new FormData();
-  form.append("video", file);
-  const res = await fetch("/api/upload-video", { method: "POST", body: form });
-  const data = await res.json();
-  if (data.ok) alert("🎥 Video uploaded successfully!\nURL: " + data.url);
-  else alert("❌ Upload failed!");
-}
-
-// 🔹 Shorts Upload
-async function uploadShort(file) {
-  const form = new FormData();
-  form.append("short", file);
-  const res = await fetch("/api/upload-short", { method: "POST", body: form });
-  const data = await res.json();
-  if (data.ok) alert("🎬 Short uploaded successfully!\nURL: " + data.url);
-  else alert("❌ Upload failed!");
-}
-
-// 🔹 Live Recording Upload
-async function uploadLive(blob) {
-  const form = new FormData();
-  form.append("live", new File([blob], "live.mp4", { type: "video/mp4" }));
-  const res = await fetch("/api/upload-live", { method: "POST", body: form });
-  const data = await res.json();
-  if (data.ok) alert("📡 Live uploaded successfully!\nURL: " + data.url);
-  else alert("❌ Upload failed!");
-}
-
-// 🔹 MediaRecorder (Live Streaming)
-let recorder, chunks = [];
-async function startLive() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  recorder = new MediaRecorder(stream);
-  chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = () => {
-    const blob = new Blob(chunks, { type: "video/mp4" });
-    uploadLive(blob);
-  };
-  recorder.start();
-  alert("🎥 Live recording started!");
-}
-
-function stopLive() {
-  recorder.stop();
-  alert("⏹ Recording stopped, uploading now...");
 }
 

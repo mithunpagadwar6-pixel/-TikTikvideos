@@ -2,139 +2,147 @@
 
 ## Overview
 
-TikTik is a Progressive Web Application (PWA) that provides a video sharing platform similar to YouTube. The application enables users to discover, watch, search, and interact with videos. Built with vanilla JavaScript on the frontend and Express.js on the backend, it emphasizes security, offline capabilities, and a clean user experience. The platform supports Google authentication, video playback, comments, search functionality, and social features like likes and shares.
+TikTik is a Progressive Web Application (PWA) that provides a complete video sharing platform similar to YouTube. The application enables users to upload videos, create shorts, do live streaming, watch content, search, and interact with videos. Built with vanilla JavaScript on the frontend and Express.js on the backend, it leverages Firebase for authentication, data storage, and file hosting. The platform supports offline functionality, dark/light themes, and can be installed on mobile devices for a native-like experience.
 
-## Recent Changes
+**Status:** ✅ Production Ready - All upload features fully implemented and tested
 
-**November 13, 2025 - Google Authentication Setup Complete**
-- Firebase configuration successfully integrated via environment variables
-- Google Sign-In fully operational with proper error handling
-- Firestore offline persistence enabled with graceful fallback to sample data
-- Error handling improved to provide cleaner console output and better user feedback
-- Authorized domain configured in Firebase Console for Replit deployment
-- Server running on port 5000 with all Firebase services initialized
+## Recent Updates - November 13, 2025
 
-**Current Status**: Google login is fully functional. Users can click "Login with Google" button in the header to authenticate with their Google account.
+### Complete Video Upload Implementation
+- ✅ **Backend API**: Created complete Express.js server with Firebase Admin SDK integration
+- ✅ **Video Uploads**: Implemented `/api/upload-video` endpoint with multipart/form-data handling
+- ✅ **Short Videos**: Implemented `/api/upload-short` endpoint for videos under 60 seconds
+- ✅ **Live Streaming**: Implemented `/api/save-live-stream` endpoint for MediaRecorder recordings
+- ✅ **Authentication**: All upload endpoints now require Firebase authentication tokens
+- ✅ **Security**: Removed demo-user fallback, enforcing proper authentication
+- ✅ **Vercel Ready**: Configured for serverless deployment with proper Express app export
+- ✅ **Frontend Integration**: Updated all upload functions to use new API endpoints with auth tokens
 
-## User Preferences
+### Backend Architecture (`server.js`)
 
-Preferred communication style: Simple, everyday language.
+**Express.js API Endpoints**
+- `GET /api/get-config` - Serves Firebase configuration to frontend
+- `POST /api/upload-video` - Uploads normal videos to Firebase Storage (authenticated)
+- `POST /api/upload-short` - Uploads short videos to Firebase Storage (authenticated)
+- `POST /api/save-live-stream` - Saves live stream recordings to Firebase Storage (authenticated)
+- `POST /api/generate-upload-url` - Generates signed URLs for uploads (authenticated)
+- `GET /api/health` - Health check endpoint
 
-## System Architecture
+**Firebase Admin SDK**
+- Server-side Firebase initialization with service account credentials
+- Firebase Storage bucket management for video uploads
+- Token verification for authenticated requests
+- Graceful handling when credentials are not configured
+
+**Security Features**
+- Bearer token authentication on all upload endpoints
+- Firebase ID token verification using Firebase Admin SDK
+- Proper error responses (401 for unauthorized, 503 for service unavailable)
+- No demo-user fallback in production
+
+**Vercel Deployment**
+- Exports Express app for serverless functions
+- Conditional `app.listen` for local development only
+- Compatible with `@vercel/node` runtime
+- Proper routing configuration in `vercel.json`
 
 ### Frontend Architecture
 
-**Single Page Application (SPA)**
-- Built with pure vanilla JavaScript without framework dependencies
-- Client-side routing handles navigation between home, search, and video player views
-- Dynamic DOM manipulation for rendering content without page reloads
-- State management through a global application object pattern
+**Upload Functionality**
+- `uploadVideoToR2()` - Uploads normal videos with Firebase authentication
+- `uploadShortVideo()` - Uploads short videos with proper categorization
+- `saveLiveStreamRecording()` - Saves MediaRecorder recordings as live streams
+- All functions send Firebase ID tokens in Authorization headers
+- Proper error handling and user feedback
 
-**Progressive Web App Implementation**
-- Service Worker (`sw.js`) provides offline functionality and asset caching
-- Network-first caching strategy for HTML/JavaScript files ensures fresh content during development
-- Cache-first strategy for static assets (CSS, fonts, images) improves performance
-- Versioned cache management (`tiktik-v1.3.0`) allows controlled cache invalidation
-- Web App Manifest enables installation on mobile devices with native-like experience
+**Firebase SDKs**
+- Firebase App (v10.7.1 compat)
+- Firebase Auth (v10.7.1 compat)
+- Firebase Firestore (v10.7.1 compat)
+- Firebase Storage (v10.7.1 compat) - Added for upload functionality
 
-**Styling and Theming**
-- CSS custom properties (CSS variables) enable dynamic theming
-- Supports light and dark themes with `[data-theme="dark"]` attribute toggle
-- Mobile-first responsive design approach
-- Component-based CSS organization for maintainability
-- FontAwesome integration for consistent iconography
+**Live Streaming**
+- MediaRecorder API for recording camera/microphone
+- Support for VP9 and VP8 codecs
+- Automatic recording and upload after stream ends
+- Real-time status updates during streaming
 
-### Backend Architecture
-
-**Express.js Server Design**
-- Minimal Node.js server with Express framework
-- Static file serving for all frontend assets
-- Single-purpose API endpoint architecture
-- SPA-friendly routing with catch-all route serving `index.html`
-- CORS enabled for development flexibility
-
-**Security-First Configuration Management**
-- Firebase credentials stored exclusively in environment variables
-- Backend endpoint (`/api/get-config`) serves configuration to frontend
-- Prevents exposure of API keys in client-side code or version control
-- Configuration validation before serving ensures required variables are set
-- Error handling returns appropriate status codes when configuration is missing
-
-### Authentication & Authorization
-
-**Firebase Authentication**
-- Google Sign-In provider for user authentication
-- Authentication state managed through Firebase Auth SDK
-- Auth state listener pattern maintains user session across page navigations
-- Token-based authentication for API requests (when implemented)
-
-**Security Approach**
-- Firebase configuration never exposed in frontend bundle
-- Runtime configuration fetching from secure backend endpoint
-- Environment variable validation before initialization
-- Graceful degradation when Firebase services are unavailable
-
-### Data Storage
+### Data Storage Solutions
 
 **Firebase Firestore**
-- NoSQL cloud database for storing video metadata, comments, and user data
-- Offline persistence enabled with multi-tab synchronization
-- Real-time updates for comments and interactions
-- Graceful fallback to sample data when Firestore is unavailable
+- Video metadata storage (title, description, category, timestamps)
+- User profiles and channel information
+- Comments and interactions
+- Real-time updates for live streaming
 
-**Client-Side Storage**
-- Service Worker cache for offline asset storage
-- Local Storage for user preferences and temporary data (implied by architecture)
-- IndexedDB through Firestore offline persistence
+**Firebase Storage**
+- Video file storage in organized folders (videos/, shorts/, livestreams/)
+- Public URL generation for video playback
+- Automatic metadata tagging
+- Secure upload with authentication
 
-### PWA Capabilities
+**Service Worker Cache**
+- Offline support for static assets
+- Network-first strategy for dynamic content
+- Cache-first strategy for CSS, fonts, images
 
-**Offline Support Strategy**
-- Cached assets available offline through Service Worker
-- Network-first for dynamic content ensures freshness when online
-- Firestore offline persistence maintains data availability
-- Fallback mechanisms when network is unavailable
+## User Preferences
 
-**Installability**
-- Manifest.json defines app metadata and icons
-- Standalone display mode for app-like experience
-- Portrait-primary orientation for mobile optimization
-- SVG-based icons for scalability across device sizes
+- **Communication**: Simple, everyday language
+- **Authentication**: Google Sign-In working perfectly
+- **Upload Features**: All implemented and ready for production
 
 ## External Dependencies
 
-### Third-Party Services
-
-**Firebase Platform**
-- **Firebase Authentication**: Google Sign-In provider for user authentication
-- **Firebase Firestore**: NoSQL database for video metadata, user data, and comments
-- **Firebase SDKs**: Loaded via CDN (version 10.7.1 compat libraries)
-  - `firebase-app-compat.js`
-  - `firebase-auth-compat.js`
-  - `firebase-firestore-compat.js`
-
-**Content Delivery Networks**
-- **FontAwesome CDN**: Icon library (version 6.0.0) for UI components
+### Firebase Services
+- **Firebase Authentication**: Google OAuth for user login
+- **Firebase Firestore**: NoSQL database for video metadata
+- **Firebase Storage**: Cloud storage for video files
+- **Firebase Admin SDK**: Server-side authentication and storage management
+- **Project**: tiktikvideos-4e8e7
 
 ### NPM Dependencies
+- `express` (^4.21.2): Web server framework
+- `cors` (^2.8.5): Cross-origin resource sharing
+- `firebase-admin` (^12.0.0): Server-side Firebase SDK
+- `multer` (^1.4.5-lts.1): Multipart form data handling
+- `busboy` (^1.6.0): Stream-based form parser
 
-**Production Dependencies**
-- **Express** (^4.21.2): Web application framework for Node.js backend
-- **CORS** (^2.8.5): Cross-Origin Resource Sharing middleware for Express
+### CDN Resources
+- FontAwesome (6.0.0): Icon library
+- Firebase SDK (10.7.1): Client-side Firebase libraries
 
-### Environment Variables Required
+## Deployment Instructions
 
-The following environment variables must be configured for Firebase integration:
-- `FIREBASE_API_KEY`: Firebase project API key
-- `FIREBASE_AUTH_DOMAIN`: Firebase authentication domain
-- `FIREBASE_PROJECT_ID`: Firebase project identifier
-- `FIREBASE_STORAGE_BUCKET`: Firebase storage bucket URL
-- `FIREBASE_MESSAGING_SENDER_ID`: Firebase Cloud Messaging sender ID
-- `FIREBASE_APP_ID`: Firebase application identifier
-- `PORT`: Server port (defaults to 5000 if not set)
+### Prerequisites
+1. Firebase service account JSON (download from Firebase Console)
+2. Vercel account connected to GitHub repository
+3. Firebase Storage rules configured for authenticated uploads
 
-### Runtime Requirements
+### Environment Variables (Vercel)
+```
+NODE_ENV=production
+FIREBASE_API_KEY=AIzaSyBlWjogX3gTipSJK31AwVw0D6KxDv3ry7Y
+FIREBASE_AUTH_DOMAIN=tiktikvideos-4e8e7.firebaseapp.com
+FIREBASE_PROJECT_ID=tiktikvideos-4e8e7
+FIREBASE_STORAGE_BUCKET=tiktikvideos-4e8e7.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=918908099153
+FIREBASE_APP_ID=1:918908099153:web:c03e103fc6199b37513670
+FIREBASE_SERVICE_ACCOUNT=[paste entire service account JSON]
+```
 
-- **Node.js**: Version 18.0.0 or higher (specified in package.json engines)
-- **Modern Browser**: Support for Service Workers, ES6+, CSS Custom Properties, and Fetch API
-- **Firebase Project**: Active Firebase project with Authentication and Firestore enabled
+### Deploy to Vercel
+1. Push code to GitHub: `git push origin main`
+2. Vercel will automatically deploy
+3. Add environment variables in Vercel dashboard
+4. Redeploy to apply environment variables
+
+See `DEPLOYMENT.md` for detailed deployment instructions.
+
+## Runtime Requirements
+- **Node.js**: >=18.0.0
+- **Browser**: Modern browser with Service Worker, ES6+, MediaRecorder API support
+- **Firebase**: Active Firebase project with Authentication, Firestore, and Storage enabled
+
+## Project Status
+✅ **Production Ready** - All features implemented, tested, and secured for deployment
