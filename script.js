@@ -7,12 +7,13 @@ let firestore = null;
 
 // ✅ Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAY1kqPrI-Sw5LYPfIUoKE45nJ3papGZU8",
-  authDomain: "tiktik-video-2de07.firebaseapp.com",
-  projectId: "tiktik-video-2de07",
-  storageBucket: "tiktik-video-2de07.appspot.com",
-  messagingSenderId: "840826006253",
-  appId: "1:840826006253:web:8a7c8356e589e1f9e0e411"
+  apiKey: "AIzaSyBlWjogX3gTipSJK31AwVw0D6KxDv3ry7Y",
+  authDomain: "tiktikvideos-4e8e7.firebaseapp.com",
+  projectId: "tiktikvideos-4e8e7",
+  storageBucket: "tiktikvideos-4e8e7.appspot.com",  // ✅ यह सही है
+  messagingSenderId: "918908099153",
+  appId: "1:918908099153:web:c03e103fc6199b37513670",
+  measurementId: "G-5LNSWVF9EC"
 };
 
 // ✅ Initialize Firebase
