@@ -2,18 +2,42 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server.js"
+      "src": "/api/health",
+      "dest": "/api/health.ts"
     },
     {
-      "src": "/(.*)",
-      "dest": "/server.js"
+      "src": "/api/get-config",
+      "dest": "/api/get-config.ts"
+    },
+    {
+      "src": "/api/upload-video",
+      "dest": "/api/upload-video.ts"
+    },
+    {
+      "src": "/api/upload-short",
+      "dest": "/api/upload-short.ts"
+    },
+    {
+      "src": "/api/save-live-stream",
+      "dest": "/api/save-live-stream.ts"
+    },
+    {
+      "src": "/api/admin/pending",
+      "dest": "/api/admin/pending.ts"
+    },
+    {
+      "src": "/api/admin/approve",
+      "dest": "/api/admin/approve.ts"
+    },
+    {
+      "src": "/api/admin/reject",
+      "dest": "/api/admin/reject.ts"
     }
   ],
   "env": {
