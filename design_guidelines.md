@@ -25,7 +25,7 @@ Your platform already has a comprehensive YouTube-clone design with:
 - **Primary Font**: Segoe UI (system font stack)
 - **Headings**: 600 weight for video titles, channel names
 - **Body**: 400 weight for descriptions, metadata
-- **Hierarchy**: Video titles (15px, bold) > Channel info (14px) > Metadata (12-13px, muted color)
+- **Hierarchy**: Video titles (15px, bold) > Channel info (14px) > Metadata (12-13px, muted)
 
 ### Layout System
 **Tailwind Spacing Units**: Use p-2, p-4, m-4, gap-4, gap-6 for consistent rhythm
@@ -60,26 +60,12 @@ Your platform already has a comprehensive YouTube-clone design with:
 - **Approval Queue**: Grid of pending uploads with approve/reject actions
 - **Content Moderation**: Thumbnail preview, metadata display, action buttons
 
-### Color System
-**Light Theme** (default):
-- Background: White (#ffffff), Light Gray (#f9f9f9), Lighter Gray (#f1f1f1)
-- Text: Black (#000000), Gray (#666666), Muted (#999999)
-- Accent: YouTube Red (#ff0000), Hover (#cc0000)
-- Borders: Light Gray (#e0e0e0)
-
-**Dark Theme**:
-- Background: Dark (#181818), Darker (#212121), Darkest (#303030)
-- Text: White (#ffffff), Light Gray (#aaaaaa), Gray (#777777)
-- Accent: Red (#ff0000) - maintains brand
-- Borders: Dark Gray (#404040)
-
 ### Animations
 **Minimal, purposeful only**:
 - Card hover: Subtle lift (2px translate) + shadow increase
 - Thumbnail hover: Slight scale (1.05) on image
 - Button states: Background color transition (0.3s)
 - Sidebar collapse: Width transition (0.3s)
-- **No** loading spinners, scroll animations, or decorative effects
 
 ### Images
 
@@ -91,7 +77,7 @@ Your platform already has a comprehensive YouTube-clone design with:
 #### Content Images
 - **Default Thumbnails**: Use placeholder images from video frames
 - **Live Stream Previews**: Real-time camera feed thumbnails
-- **Category Icons**: Font Awesome icons for navigation (no custom images needed)
+- **Category Icons**: Font Awesome icons for navigation
 
 ## Accessibility
 - Maintain consistent tab navigation throughout
@@ -101,13 +87,13 @@ Your platform already has a comprehensive YouTube-clone design with:
 - Color contrast ratios meet WCAG AA standards
 
 ## Production-Ready Checklist
-✅ Responsive grid adapts to mobile/tablet/desktop
-✅ Theme toggle persists user preference
-✅ Video upload shows real-time progress
-✅ Error states display clear messages
-✅ Empty states guide users to action
-✅ Loading states for async operations
-✅ Form validation with helpful feedback
-✅ Optimized for serverless deployment (Vercel)
+- Responsive grid adapts to mobile/tablet/desktop
+- Theme toggle persists user preference
+- Video upload shows real-time progress
+- Error states display clear messages
+- Empty states guide users to action
+- Loading states for async operations
+- Form validation with helpful feedback
+- Optimized for serverless deployment (Vercel)
 
 **Design Priority**: The backend functionality (Firebase integration, live streaming, upload APIs) takes precedence. The existing frontend design is production-ready and should remain unchanged unless specific UX issues arise during testing.
