@@ -2,44 +2,47 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.ts",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/health",
-      "dest": "/api/health.ts"
+      "dest": "/api/health.js"
     },
     {
       "src": "/api/get-config",
-      "dest": "/api/get-config.ts"
+      "dest": "/api/get-config.js"
     },
     {
       "src": "/api/upload-video",
-      "dest": "/api/upload-video.ts"
+      "dest": "/api/upload-video.js"
     },
     {
       "src": "/api/upload-short",
-      "dest": "/api/upload-short.ts"
+      "dest": "/api/upload-short.js"
     },
     {
       "src": "/api/save-live-stream",
-      "dest": "/api/save-live-stream.ts"
+      "dest": "/api/save-live-stream.js"
     },
     {
       "src": "/api/admin/pending",
-      "dest": "/api/admin/pending.ts"
+      "dest": "/api/admin/pending.js"
     },
     {
       "src": "/api/admin/approve",
-      "dest": "/api/admin/approve.ts"
+      "dest": "/api/admin/approve.js"
     },
     {
       "src": "/api/admin/reject",
-      "dest": "/api/admin/reject.ts"
+      "dest": "/api/admin/reject.js"
     }
   ],
+  "limits": {
+    "maxRequestBodySize": "150mb"
+  },
   "env": {
     "NODE_ENV": "production"
   }
